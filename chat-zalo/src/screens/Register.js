@@ -9,14 +9,14 @@ const Register = () => {
         <div className="formContent">
           <form>
             <div className="formField">
-              <label htmlFor="username">
+              <label htmlFor="fullName">
                 <i class="icon fa fa-user" aria-hidden="true"></i>
               </label>
               <input
                 className="input"
                 type="text"
-                id="username"
-                placeholder="Input your username"
+                id="fullName"
+                placeholder="Input your fullName"
               />
             </div>
             <div className="formField">
