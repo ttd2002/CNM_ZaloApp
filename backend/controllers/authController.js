@@ -74,8 +74,25 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });//find the user with the email
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });//find the user with the username
+        const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");//compare the password with the hashed password
+
+        if (!user || !isPasswordCorrect) {
+            {
+                return res.status(400).json({ error: "Invalid username or password" });//if the user is not found or password is incorrect
+            }
+        }
+
+        generateToken(user._id, res);//generate JWT token
+
+        return res.status(200).json({//if the user is successfully logged in
+            _id: user._id,
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+        });
 
     } catch (error) {
         console.log("Error in login controller", error.message);//if there is any error in the server (database error, server error, etc.)
