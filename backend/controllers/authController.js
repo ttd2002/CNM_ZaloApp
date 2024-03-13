@@ -100,6 +100,12 @@ export const login = async (req, res) => {
     }
 };
 
-export const logout = async (req, res) => {
-    res.send("Logout Route");
+export const logout = (req, res) => {
+    try {
+        res.cookie("jwt", "", { maxAge: 0 });//clear the cookie
+        res.status(200).json({ message: "User logged out successfully" });//if the user is successfully logged out
+    } catch (error) {
+        console.log("Error in logout controller", error.message);//if there is any error in the server (database error, server error, etc.)
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 };
