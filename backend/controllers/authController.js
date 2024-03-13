@@ -1,5 +1,6 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
+import generateToken from "../utils/generateToken.js";
 
 export const signup = async (req, res) => {
     const { fullName, username, email, password, confirmPassword, gender } = req.body;
@@ -46,17 +47,25 @@ export const signup = async (req, res) => {
             gender,
             avatar: gender === "male" ? boyAvatar : girlAvatar,
         });
+        if (newUser) {
 
-        //save the user to the database
-        await newUser.save();
+            //generate JWT token
+            generateToken(newUser._id, res);
 
-        res.status(201).json({//if the user is successfully created
-            _id: newUser._id,
-            fullName: newUser.fullName,
-            username: newUser.username,
-            email: newUser.email,
-            avatar: newUser.avatar,
-        });
+            //save the user to the database
+            await newUser.save();
+
+            res.status(201).json({//if the user is successfully created
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                username: newUser.username,
+                email: newUser.email,
+                avatar: newUser.avatar,
+            });
+        } else {
+            res.status(400).json({ error: "Invalid user data" });//if the user is not created
+        }
+
     } catch (error) {
         console.log("Error in signup controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });//if there is any error in the server (database error, server error, etc.)
