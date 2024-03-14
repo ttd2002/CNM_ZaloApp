@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
 import generateotp from "otp-generator";
+import { sendOTPByEmail } from "./mailer.js";
 
 export const signup = async (req, res) => {
     const { fullName, username, email, password, confirmPassword, gender } = req.body;
@@ -125,26 +126,49 @@ export async function verifyUser(req, res, next) {
     }
 }
 
-// generate OTP
+// generate OTP and send email
 export async function generateOTP(req, res) {
-    // only number
-    req.app.locals.OTP = await generateotp.generate(6, {
-        specialChars: false,
-        lowerCaseAlphabets: false,
-        upperCaseAlphabets: false,
-    });
-    res.status(201).send({ code: req.app.locals.OTP });
+    const { email, username } = req.query; // get email from query params
+
+    try {
+        // generate OTP
+        const OTP = await generateotp.generate(6, {
+            specialChars: false,
+            lowerCaseAlphabets: false,
+            upperCaseAlphabets: false,
+        });
+
+        // send OTP to email
+        await sendOTPByEmail(email, username, OTP);
+
+        // set expiry time for OTP is 1 minutes
+        const expiryTime = Date.now() + 60000;
+
+        // store OTP in local variable
+        req.app.locals.OTP = { code: OTP, expiryTime };
+
+        // return OTP generated
+        res.status(201).send({ code: OTP });
+    } catch (error) {
+        console.log("Error generating OTP:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+    }
 }
 
 // verify OTP
 export async function verifyOTP(req, res) {
     const { code } = req.query;
-    if (parseInt(req.app.locals.OTP) === parseInt(code)) {
-        req.app.locals.OTP = null; // reset OTP value
-        req.app.locals.resetSession = true; // start session for reset password
-        return res.status(201).send({ message: "OTP Verified Sucessfully!" });
+    const OTP = req.app.locals.OTP;
+
+    if (OTP && parseInt(OTP.code) === parseInt(code) && Date.now() <= OTP.expiryTime) {
+        // Reset OTP value and set reset session flag
+        req.app.locals.OTP = null;
+        req.app.locals.resetSession = true;
+        return res.status(201).send({ message: "OTP Verified Successfully!" });
     }
-    return res.status(400).send({ error: "Invalid OTP!" });
+
+    return res.status(400).send({ error: "Invalid OTP or OTP expired!" });
+
 }
 
 //create Reset session

@@ -7,9 +7,7 @@ const router = express.Router();
 
 //method POST
 router.post("/signup", signup);//route for signup
-
 router.post("/login", login);//route for login
-
 router.post("/logout", logout);//route for logout
 
 //method GET
