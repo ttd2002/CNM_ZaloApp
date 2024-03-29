@@ -1,5 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -21,7 +22,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 //
-const CreateGroupForm = ({}) => {
+const CreateGroupForm = ({ handleClose }) => {
   const NewGroupSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     members: Yup.array().min(2, "Must have at least two members"),
@@ -61,9 +62,20 @@ const CreateGroupForm = ({}) => {
           label="Members"
           multiple
           freeSolo
-          options={MEMBERS.map((option)=> option)}
-          ChipProps={{size: "medium"}}
+          options={MEMBERS.map((option) => option)}
+          ChipProps={{ size: "medium" }}
         />
+        <Stack
+          spacing={2}
+          direction={"row"}
+          alignItems={"center"}
+          justifyContent={"end"}
+        >
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button type="Submit" variant="contained">
+            Create
+          </Button>
+        </Stack>
       </Stack>
     </FormProvider>
   );
@@ -82,12 +94,18 @@ const CreateGroup = ({ open, handleClose }) => {
       }}
     >
       {/* Title  */}
-      <DialogTitle>Create New Group</DialogTitle>
+      <DialogTitle
+        sx={{
+          mb: 2,
+        }}
+      >
+        Create New Group
+      </DialogTitle>
 
       {/* Content */}
       <DialogContent>
         {/* Form */}
-        <CreateGroupForm />
+        <CreateGroupForm handleClose={handleClose} />
       </DialogContent>
     </Dialog>
   );

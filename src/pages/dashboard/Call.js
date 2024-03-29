@@ -1,39 +1,29 @@
 import {
   Box,
+  Divider,
+  IconButton,
+  Link,
   Stack,
   Typography,
-  Link,
-  IconButton,
   useTheme,
-  Divider,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Search from "../../components/Search/Search";
 import SearchIconWrapper from "../../components/Search/SearchIconWrapper";
-import StyledInputBase from "../../components/Search/StyledInputBase";
 import { MagnifyingGlass, Plus } from "phosphor-react";
-import { ChatList } from "../../data";
-import ChatElement from "../../components/ChatElement";
-import { scrollElements, showScrollbars } from "../../components/Scrollbar";
-import CreateGroup from "../../sections/main/CreateGroup";
-const Group = () => {
-  const theme = useTheme();
+import StyledInputBase from "../../components/Search/StyledInputBase";
+import { showScrollbars } from "../../components/Scrollbar";
+import { CallLogElement } from "../../components/CallElement";
+import { CallLogs } from "../../data";
+import StartCall from "../../sections/main/StartCall";
+
+const Call = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const handeCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  useEffect(() => {
-    scrollElements.forEach((el) => {
-      el.addEventListener("scroll", showScrollbars);
-      // el.addEventListener("mouseenter", showScrollbars);
-
-      return () => {
-        el.removeEventListener("scroll", showScrollbars);
-        // el.removeEventListener("mouseenter", showScrollbars);
-      };
-    });
-  }, []); // Chạy một lần sau khi component được render
+  const theme = useTheme();
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
@@ -51,9 +41,8 @@ const Group = () => {
         >
           <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
             <Stack>
-              <Typography variant="h5">Groups</Typography>
+              <Typography variant="h5">Calls Logs</Typography>
             </Stack>
-
             <Stack sx={{ width: "100%" }}>
               <Search>
                 <SearchIconWrapper>
@@ -65,26 +54,25 @@ const Group = () => {
                 />
               </Search>
             </Stack>
-
             <Stack
               direction={"row"}
               justifyContent={"space-between"}
               alignItems={"center"}
             >
               <Typography variant="subtitle2" component={Link}>
-                Create New Group
+                Start a new conversation
               </Typography>
-              <IconButton onClick={() => {
-                setOpenDialog(true);
-              }}>
+              <IconButton
+                onClick={() => {
+                  setOpenDialog(true);
+                }}
+              >
                 <Plus style={{ color: theme.palette.primary.main }} />
               </IconButton>
             </Stack>
-
             <Divider />
-
             <Stack
-            spacing={2}
+              spacing={2}
               onScroll={showScrollbars}
               data-scrollbars
               sx={{
@@ -111,27 +99,14 @@ const Group = () => {
                 },
               }}
             >
-              {/* sidebar */}
-
+              {/* Bar */}
               <Stack spacing={2.5}>
-                {/*  */}
-                <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-                  Pinned
-                </Typography>
+                {/* Calllog */}
+                {CallLogs.map((el) => (
+                  <CallLogElement {...el} online={true} />
+                ))}
 
-                {/* Chat list */}
-                {ChatList.filter((el) => el.pinned).map((el) => {
-                  return <ChatElement {...el} />;
-                })}
                 {/*  */}
-                <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-                  All Groups
-                </Typography>
-
-                {/* Chat list */}
-                {ChatList.filter((el) => !el.pinned).map((el) => {
-                  return <ChatElement {...el} />;
-                })}
               </Stack>
             </Stack>
           </Stack>
@@ -139,11 +114,12 @@ const Group = () => {
 
         {/* Right */}
         {/* Reuse conversation */}
-
       </Stack>
-      {openDialog && <CreateGroup open={openDialog} handleClose={handeCloseDialog}/>}
+      {openDialog && (
+        <StartCall open={openDialog} handleClose={handeCloseDialog} />
+      )}
     </>
   );
 };
 
-export default Group;
+export default Call;
