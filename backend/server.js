@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import connectToMongoDB from "./database/connectToMongoDB.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -19,3 +21,5 @@ app.listen(PORT, () => {
 // });
 
 app.use("/api/auth", authRoutes);
+app.use(cookieParser);//parse the incoming request with cookies
+app.use("/api/messages", messageRoutes);

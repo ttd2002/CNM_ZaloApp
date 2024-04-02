@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import mailgen from 'mailgen';
-import { generateOTP } from '../controllers/authController.js';
 
 import dotenv from 'dotenv';
 dotenv.config();

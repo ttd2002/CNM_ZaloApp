@@ -132,7 +132,7 @@ export async function generateOTP(req, res) {
 
     try {
         // generate OTP
-        const OTP = await generateotp.generate(6, {
+        const OTP = generateotp.generate(6, {
             specialChars: false,
             lowerCaseAlphabets: false,
             upperCaseAlphabets: false,
