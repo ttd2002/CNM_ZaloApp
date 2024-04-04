@@ -4,10 +4,10 @@ import multer from "multer";
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
+    allowedFormats: ['jpeg', 'jpg', 'png'],
     params: {
         folder: 'images',
-        format: /jpeg|jpg|png/
     },
 });
 
-export const upload = multer({ storage: storage });
+export const upload = multer({ storage: storage, limits: { fileSize: 1024 * 1024 * 5 } });// 5MB

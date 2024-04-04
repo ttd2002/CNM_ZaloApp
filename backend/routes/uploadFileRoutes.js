@@ -1,10 +1,14 @@
 import express from 'express';
 import { uploadImage } from "../controllers/uploadFileController.js";
-import { upload } from "../middlewares/upload.js";
+import { upload } from "../middlewares/uploadimages.js";
+import { uploadAvatar } from '../controllers/uploadFileController.js';
+import { uploadAvatarMiddleware } from "../middlewares/uploadAvatar.js";
+import { authenticateToken } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post('/uploadImage', upload.array('image', 10), uploadImage);
+router.post('/uploadImage', upload.array('images', 10), uploadImage);
+router.post('/uploadAvatar/:id', authenticateToken, uploadAvatarMiddleware.single('avatar'), uploadAvatar);
 
 
 export default router;

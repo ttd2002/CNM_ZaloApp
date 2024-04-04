@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
 import generateotp from "otp-generator";
+import cloudinary from "../config/cloudinaryConfig.js";
 // import sendOTP from "../controllers/sendOTPController.js";
 
 export const signup = async (req, res) => {
@@ -16,57 +17,62 @@ export const signup = async (req, res) => {
 
         if (user) {
             //if user exists with the username
-            return res
-                .status(400)
-                .json({ error: `User already exists with this phone number` });
+            return res.status(400).json({ error: `User already exists with this phone number` });
         }
 
         // hash password with bcrypt
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        //set avatar default for user
+        let avatar = ''; // Khởi tạo biến avatar để lưu link ảnh
+
+        // Set default avatar for user
         const boyAvatar = `https://avatar.iran.liara.run/public/boy?phone=${phone}`;
         const girlAvatar = `https://avatar.iran.liara.run/public/girl?phone=${phone}`;
 
-        // create a new user
+        if (!req.file) {
+            avatar = gender === "male" ? boyAvatar : girlAvatar; // Use default avatar based on gender if no file is uploaded
+        } else {
+            avatar = req.file.path;
+
+        }
+
+        // Create a new user
         const newUser = new User({
             name,
             phone,
             password: hashedPassword,
             gender,
             birthday,
-            avatar: gender === "male" ? boyAvatar : girlAvatar,
+            avatar,
         });
-        if (newUser) {
-            //generate JWT token
-            generateToken(newUser._id, res);
 
+        // Generate JWT token
+        const token = generateToken(newUser._id, res);
 
+        // Save the user to the database
+        const savedUser = await newUser.save();
 
-            //save the user to the database
-            const savedUser = await newUser.save();
-            if (savedUser) {
-                console.log("User created successfully");
-            }
-
-            res.status(201).json({
-                //if the user is successfully created
-                _id: newUser._id,
-                name: newUser.name,
-                phone: newUser.phone,
-                gender: newUser.gender,
-                birthday: newUser.birthday,
-                avatar: newUser.avatar,
-            });
-        } else {
-            res.status(400).json({ error: "Invalid user data" }); //if the user is not created
+        if (savedUser) {
+            console.log("User created successfully");
         }
+
+        res.status(201).json({
+            //if the user is successfully created
+            _id: newUser._id,
+            name: newUser.name,
+            phone: newUser.phone,
+            gender: newUser.gender,
+            birthday: newUser.birthday,
+            avatar: newUser.avatar,
+            token // Trả về token trong phản hồi
+        });
     } catch (error) {
         console.log("Error in signup controller", error.message);
         res.status(500).json({ error: "Internal Server Error" }); //if there is any error in the server (database error, server error, etc.)
     }
 };
+
 
 export const login = async (req, res) => {
     try {

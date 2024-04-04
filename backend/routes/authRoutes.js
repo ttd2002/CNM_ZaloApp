@@ -10,11 +10,12 @@ import {
     resetPassword,
 } from "../controllers/authController.js";
 import { localVariable } from "../middlewares/auth.js";
+import { uploadAvatarMiddleware } from "../middlewares/uploadAvatar.js";
 
 const router = express.Router();
 
 //method POST
-router.post("/signup", signup); //route for signup
+router.post("/signup", uploadAvatarMiddleware.single("avatar"), signup); //route for signup
 router.post("/login", login); //route for login
 router.post("/logout", logout); //route for logout
 
