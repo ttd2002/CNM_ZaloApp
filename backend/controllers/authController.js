@@ -2,32 +2,23 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
 import generateotp from "otp-generator";
-import { sendOTPByEmail } from "./mailer.js";
+// import sendOTP from "../controllers/sendOTPController.js";
 
 export const signup = async (req, res) => {
-    const { fullName, username, email, password, confirmPassword, gender } = req.body;
+    const { name, phone, password, confirmPassword, gender, birthday } = req.body;
     try {
         // Check if password and confirmPassword not match
         if (password !== confirmPassword || !confirmPassword) {
             return res.status(400).json({ error: "Password do not match" });
         }
 
-        let user = await User.findOne({ username }); //find the user with the username
+        let user = await User.findOne({ phone }); //find the user with the phone number
 
         if (user) {
             //if user exists with the username
             return res
                 .status(400)
-                .json({ error: `User already exists with this username` });
-        }
-
-        user = await User.findOne({ email }); //find the user with the email
-
-        if (user) {
-            //if user exists with the email
-            return res
-                .status(400)
-                .json({ error: `User already exists with this email` });
+                .json({ error: `User already exists with this phone number` });
         }
 
         // hash password with bcrypt
@@ -35,31 +26,37 @@ export const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         //set avatar default for user
-        const boyAvatar = `https://avatar.iran.liara.run/public/boy?username=${username}`;
-        const girlAvatar = `https://avatar.iran.liara.run/public/girl?username=${username}`;
+        const boyAvatar = `https://avatar.iran.liara.run/public/boy?phone=${phone}`;
+        const girlAvatar = `https://avatar.iran.liara.run/public/girl?phone=${phone}`;
 
         // create a new user
         const newUser = new User({
-            fullName,
-            username,
-            email,
+            name,
+            phone,
             password: hashedPassword,
             gender,
+            birthday,
             avatar: gender === "male" ? boyAvatar : girlAvatar,
         });
         if (newUser) {
             //generate JWT token
             generateToken(newUser._id, res);
 
+
+
             //save the user to the database
-            await newUser.save();
+            const savedUser = await newUser.save();
+            if (savedUser) {
+                console.log("User created successfully");
+            }
 
             res.status(201).json({
                 //if the user is successfully created
                 _id: newUser._id,
-                fullName: newUser.fullName,
-                username: newUser.username,
-                email: newUser.email,
+                name: newUser.name,
+                phone: newUser.phone,
+                gender: newUser.gender,
+                birthday: newUser.birthday,
                 avatar: newUser.avatar,
             });
         } else {
@@ -73,8 +70,8 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const user = await User.findOne({ username }); //find the user with the username
+        const { phone, password } = req.body;
+        const user = await User.findOne({ phone }); //find the user with the phone number
         const isPasswordCorrect = await bcrypt.compare(
             password,
             user?.password || ""
@@ -86,15 +83,19 @@ export const login = async (req, res) => {
             }
         }
 
-        generateToken(user._id, res); //generate JWT token
+        const token = generateToken(user._id, res); //generate JWT token
 
         return res.status(200).json({
             //if the user is successfully logged in
             _id: user._id,
-            fullName: user.fullName,
-            username: user.username,
-            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            gender: user.gender,
+            birthday: user.birthday,
             avatar: user.avatar,
+            token,
+
         });
     } catch (error) {
         console.log("Error in login controller", error.message); //if there is any error in the server (database error, server error, etc.)
@@ -115,11 +116,11 @@ export const logout = (req, res) => {
 /** middleware for verify user */
 export async function verifyUser(req, res, next) {
     try {
-        const { username } = req.method == "GET" ? req.query : req.body;
+        const { phone } = req.method == "GET" ? req.query : req.body;
 
         // check the user existance
-        let exist = await User.findOne({ username });
-        if (!exist) return res.status(404).send({ error: "Can't find User!" });
+        let exist = await User.findOne({ phone });
+        if (!exist) return res.status(404).send({ error: `Can't find User with phone number ${phone} !` });
         next();
     } catch (error) {
         return res.status(404).send({ error: "Authentication Error" });
@@ -128,7 +129,7 @@ export async function verifyUser(req, res, next) {
 
 // generate OTP and send email
 export async function generateOTP(req, res) {
-    const { email, username } = req.query; // get email from query params
+    const { phone } = req.query; // get email from query params
 
     try {
         // generate OTP
@@ -138,11 +139,11 @@ export async function generateOTP(req, res) {
             upperCaseAlphabets: false,
         });
 
-        // send OTP to email
-        await sendOTPByEmail(email, username, OTP);
+        // send OTP to phone number
+        // await sendOTP(phone, OTP);
 
-        // set expiry time for OTP is 1 minutes
-        const expiryTime = Date.now() + 60000;
+        // set expiry time for OTP is 2 minutes
+        const expiryTime = Date.now() + 120000;
 
         // store OTP in local variable
         req.app.locals.OTP = { code: OTP, expiryTime };
@@ -191,16 +192,16 @@ export async function resetPassword(req, res) {
                 .status(440)
                 .send({ error: "Session expired!" });
 
-        const { username, password } = req.body;
+        const { phone, password } = req.body;
 
         try {
-            User.findOne({ username })
+            User.findOne({ phone })
                 .then((user) => {
                     bcrypt
                         .hash(password, 10)
                         .then((hashedPasssword) => {
                             User.updateOne(
-                                { username: user.username },
+                                { phone: user.phone },
                                 { password: hashedPasssword }
                             )
                                 .then(data => {
@@ -234,3 +235,4 @@ export async function resetPassword(req, res) {
         return res.status(401).send({ error });
     }
 }
+

@@ -4,6 +4,7 @@ import authRoutes from "./routes/authRoutes.js";
 import connectToMongoDB from "./database/connectToMongoDB.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import cookieParser from "cookie-parser";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -21,5 +22,7 @@ app.listen(PORT, () => {
 // });
 
 app.use("/api/auth", authRoutes);
-app.use(cookieParser);//parse the incoming request with cookies
 app.use("/api/messages", messageRoutes);
+app.use("/api/user", userRoutes);
+
+app.use(cookieParser);//parse the incoming request with cookies

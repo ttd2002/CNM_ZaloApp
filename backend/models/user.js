@@ -1,19 +1,15 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    fullName: {
+    name: {
         type: String,
         required: true,
     },
-    username: {
+    phone: {
         type: String,
         required: true,
         unique: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
+        length: 10,
     },
     password: {
         type: String,
@@ -25,11 +21,26 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    birthday: {
+        type: String,
+        required: true,
+    },
     avatar: {
         type: String,
         default: "",
     },
 }, { timestamps: true });
+
+// Trước khi lưu vào cơ sở dữ liệu, chuyển đổi ngày sinh sang định dạng dd/MM/yy
+userSchema.pre("save", function (next) {
+    const user = this;
+    const birthday = user.birthday;
+    if (birthday instanceof Date) {
+        const formattedBirthday = `${birthday.getDate()}/${birthday.getMonth() + 1}/${birthday.getFullYear()}`;
+        user.birthday = formattedBirthday;
+    }
+    next();
+});
 
 const User = mongoose.model("User", userSchema);
 
