@@ -26,7 +26,7 @@ export async function authenticateToken(req, res, next) {//middleware to authent
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.userID);
+        req.user = await User.findById(decoded.userID).select('-password');
         // console.log('Decoded:', decoded);
         // console.log('User:', req.user);
 
