@@ -12,6 +12,7 @@ const PORT = process.env.PORT;
 
 const app = express();
 app.use(express.json()); //parse the incoming request with JSON payloads (from req.body)
+app.use(cookieParser());//parse the incoming request with cookies
 
 app.listen(PORT, () => {
     connectToMongoDB();//connect to MongoDB
@@ -23,8 +24,7 @@ app.listen(PORT, () => {
 // });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/messages", messageRoutes);
 
-app.use(cookieParser);//parse the incoming request with cookies

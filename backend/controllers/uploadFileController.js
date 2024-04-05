@@ -44,24 +44,16 @@ export async function uploadAvatar(req, res) {
             return res.status(403).json({ error: "Forbidden - You are not allowed to update other user's avatar" });
         }
 
-        // Upload ảnh lên Cloudinary
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: `avatar`,
-            public_id: `avt_${userId}`,
-            overwrite: true,
-            allowed_formats: ['jpg', 'jpeg', 'png']
-        });
 
         // Cập nhật đường dẫn ảnh mới vào cơ sở dữ liệu
-        user.avatar = result.secure_url;
+        user.avatar = req.file.path;
         await user.save();
 
         // Trả về thông tin của ảnh đã upload
         return res.status(200).json({
             message: "Avatar uploaded successfully",
             data: {
-                url: result.secure_url,
-                public_id: result.public_id
+                url: req.file.path,
             }
         });
 

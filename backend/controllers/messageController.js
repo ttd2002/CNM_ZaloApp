@@ -3,9 +3,16 @@ import Message from "../models/message.js";
 
 export const sendMessage = async (req, res) => {
     try {
-        const { message } = req.body;
-        const { id: receiverId } = req.params;
+        const { content } = req.body;
+        const receiverId = req.params.id;
         const senderId = req.user._id;
+
+        // console.log("Sender ID: ", senderId);
+        // console.log("Receiver ID: ", receiverId);
+
+        if (!senderId || !receiverId) {
+            return res.status(400).json({ error: "Sender ID and Receiver ID are required" });
+        }
 
         let conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] },
@@ -17,16 +24,23 @@ export const sendMessage = async (req, res) => {
             });
         }
 
-        const newMessage = new Message({
-            senderId,
-            receiverId,
-            message,
-        });
-
-        if (newMessage) {
-            conversation.messages.push(newMessage._id);
+        let imageUrls = [];
+        if (req.files) {
+            for (const file of req.files) {
+                imageUrls.push(file.path); // Lấy đường dẫn của các hình ảnh từ req.files
+            }
         }
 
+        const newMessage = new Message({
+            senderID: senderId,
+            receiverID: receiverId,
+            messages: [{
+                content,
+                image: imageUrls,
+            }],
+        });
+
+        conversation.messages.push(newMessage._id);
         await conversation.save();
         await newMessage.save();
 

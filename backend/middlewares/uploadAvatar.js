@@ -8,13 +8,10 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'avatar',
     },
-    // filename: (req, file, cb) => {
-    //     req.body.public_id = `avt_${req.body.phone}_${Date.now().toString()}`;
-    //     cb(null, file.originalname);
-    // }
+
 });
 
-export const uploadAvatarMiddleware = multer({
+const uploadAvatarMiddleware = multer({
     storage: storage,
     limits: { fileSize: 1024 * 1024 * 5 },
     fileFilter: (req, file, cb) => {
@@ -22,3 +19,5 @@ export const uploadAvatarMiddleware = multer({
         cb(null, true);
     },
 });
+
+export { uploadAvatarMiddleware };

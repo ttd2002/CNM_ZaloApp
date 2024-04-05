@@ -22,9 +22,23 @@ const messageSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-    message: [{
-        type: String,
-        required: true,
+    messages: [{
+        content: {
+            type: String,
+            required: function () {
+                return this.image === undefined;
+            }
+        },
+        image: [{
+            type: String,
+            required: function () {
+                return this.content === undefined;
+            }
+        }],
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        }
     }]
     //createAt, updateAt    
 }, { timestamps: true });
