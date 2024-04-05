@@ -57,7 +57,20 @@ export const getListUsers = async (req, res) => {
 
         res.status(200).json(filteredUsers);
     } catch (error) {
-        console.log("Error in getUsers controller", error.message);
+        console.log("Error in getListUsers controller", error.message);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+//get Profile user
+export const getProfile = async (req, res) => {
+    try {
+        const user = req.user;
+
+        res.status(200).json(user);
+
+    } catch (error) {
+        console.log("Error in getProfile controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
