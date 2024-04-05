@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
 const upload = multer({
     storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 } // Giới hạn kích thước 5MB
-}); // Sử dụng single() để chỉ upload 1 file
+});
 
 // Middleware để xử lý lỗi khi file vượt quá kích thước
 const handleFileSizeError = (err, req, res, next) => {
