@@ -78,6 +78,10 @@ export const login = async (req, res) => {
     try {
         const { phone, password } = req.body;
         const user = await User.findOne({ phone }); //find the user with the phone number
+
+        // if (phone != user.phone) {
+        //     return res.status(400).json({ error: "Phone is not found" }); //if the user is not found or password is incorrect
+        // }
         const isPasswordCorrect = await bcrypt.compare(
             password,
             user?.password || ""
@@ -85,7 +89,7 @@ export const login = async (req, res) => {
 
         if (!user || !isPasswordCorrect) {
             {
-                return res.status(400).json({ error: "Invalid username or password" }); //if the user is not found or password is incorrect
+                return res.status(400).json({ error: "Invalid phone or password" }); //if the user is not found or password is incorrect
             }
         }
 
@@ -138,6 +142,15 @@ export async function generateOTP(req, res) {
     const { phone } = req.query; // get email from query params
 
     try {
+
+        const user = await User.findOne({ phone });
+
+        if (!user) {
+            {
+                return res.status(400).json({ error: "Invalid phone" }); //if the user is not found or password is incorrect
+            }
+        }
+
         // generate OTP
         const OTP = generateotp.generate(6, {
             specialChars: false,
@@ -164,8 +177,16 @@ export async function generateOTP(req, res) {
 
 // verify OTP
 export async function verifyOTP(req, res) {
-    const { code } = req.query;
+    const { code, phone } = req.query;
     const OTP = req.app.locals.OTP;
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+        {
+            return res.status(400).json({ error: "Invalid phone" }); //if the user is not found or password is incorrect
+        }
+    }
 
     if (OTP && parseInt(OTP.code) === parseInt(code) && Date.now() <= OTP.expiryTime) {
         // Reset OTP value and set reset session flag
