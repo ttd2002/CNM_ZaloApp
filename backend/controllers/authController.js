@@ -98,8 +98,7 @@ export const login = async (req, res) => {
         return res.status(200).json({
             //if the user is successfully logged in
             _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            name: user.name,
             phone: user.phone,
             gender: user.gender,
             birthday: user.birthday,

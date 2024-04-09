@@ -29,6 +29,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    friendRequests: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }]
 }, { timestamps: true });
 
 // Trước khi lưu vào cơ sở dữ liệu, chuyển đổi ngày sinh sang định dạng dd/MM/yy
