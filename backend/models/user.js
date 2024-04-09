@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -22,7 +23,7 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
     birthday: {
-        type: String,
+        type: Date,
         required: true,
     },
     avatar: {
@@ -37,17 +38,19 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }]
-}, { timestamps: true });
-
-// Trước khi lưu vào cơ sở dữ liệu, chuyển đổi ngày sinh sang định dạng dd/MM/yy
-userSchema.pre("save", function (next) {
-    const user = this;
-    const birthday = user.birthday;
-    if (birthday instanceof Date) {
-        const formattedBirthday = `${birthday.getDate()}/${birthday.getMonth() + 1}/${birthday.getFullYear()}`;
-        user.birthday = formattedBirthday;
+}, {
+    timestamps: {
+        currentTime: () => moment.tz("Asia/Ho_Chi_Minh").toDate()
     }
-    next();
+});
+
+// Cập nhật phương thức toJSON để hiển thị thời gian theo múi giờ của Việt Nam
+userSchema.set("toJSON", {
+    transform: function (doc, ret, options) {
+        ret.createdAt = moment(ret.createdAt).tz("Asia/Ho_Chi_Minh").format();
+        ret.updatedAt = moment(ret.updatedAt).tz("Asia/Ho_Chi_Minh").format();
+        return ret;
+    }
 });
 
 const User = mongoose.model("User", userSchema);

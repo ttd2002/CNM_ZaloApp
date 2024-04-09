@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import mongoose from "mongoose";
 
 /*
@@ -37,7 +38,7 @@ const messageSchema = new mongoose.Schema({
         }],
         createdAt: {
             type: Date,
-            default: Date.now,
+            default: () => moment.tz("Asia/Ho_Chi_Minh").toDate(),
         }
     }],
     deletedBy: [{
@@ -49,7 +50,23 @@ const messageSchema = new mongoose.Schema({
         default: false
     }
     //createAt, updateAt    
-}, { timestamps: true });
+}, {
+    timestamps: {
+        currentTime: () => moment.tz("Asia/Ho_Chi_Minh").toDate()
+    }
+});
+
+// Cập nhật phương thức toJSON để hiển thị thời gian theo múi giờ của Việt Nam
+messageSchema.set("toJSON", {
+    transform: function (doc, ret, options) {
+        ret.createdAt = moment(ret.createdAt).tz("Asia/Ho_Chi_Minh").format();
+        ret.updatedAt = moment(ret.updatedAt).tz("Asia/Ho_Chi_Minh").format();
+        ret.messages.forEach(message => {
+            message.createdAt = moment(message.createdAt).tz("Asia/Ho_Chi_Minh").format();
+        });
+        return ret;
+    }
+});
 
 const message = mongoose.model("Message", messageSchema);
 
