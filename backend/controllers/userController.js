@@ -1,4 +1,5 @@
 import User from "../models/user.js";
+import Conversation from "../models/conversation.js";
 
 export const updateUser = async (req, res) => {
     const { name, gender, birthday, avatar } = req.body;
@@ -48,14 +49,27 @@ export const updateUser = async (req, res) => {
     }
 };
 
-//get list of users
+//get list of users with message 
 export const getListUsers = async (req, res) => {
     try {
         const loggedUserId = req.user._id;
 
-        const filteredUsers = await User.find({ _id: { $ne: loggedUserId } }).select("-password");
+        // Tìm tất cả các cuộc trò chuyện mà người dùng hiện tại tham gia
+        const conversations = await Conversation.find({ participants: loggedUserId }).populate("participants", "-password -friendRequests -friends");
 
-        res.status(200).json(filteredUsers);
+        // Lọc danh sách các người dùng từ các cuộc trò chuyện
+        const usersInConversations = conversations.reduce((users, conversation) => {
+            conversation.participants.forEach(participant => {
+                if (participant._id.toString() !== loggedUserId.toString()) {
+                    if (!users.find(u => u._id.toString() === participant._id.toString())) {
+                        users.push(participant);
+                    }
+                }
+            });
+            return users;
+        }, []);
+
+        res.status(200).json(usersInConversations);
     } catch (error) {
         console.log("Error in getListUsers controller", error.message);
         res.status(500).json({ error: "Internal Server Error" });
@@ -288,13 +302,13 @@ export const findOtherUser = async (req, res) => {
         keyword = keyword.toLowerCase();
 
         // Tìm kiếm người dùng bằng số điện thoại
-        const usersByPhone = await User.find({ phone: keyword }).select("-password");
+        const usersByPhone = await User.find({ phone: keyword }).select("-password -friendRequests -friends");
 
         // Nếu tìm kiếm bằng tên, chỉ tìm được người dùng là bạn bè
         let usersByName = [];
         if (isNaN(keyword)) {
             // Tìm kiếm theo tên không phân biệt chữ hoa và chữ thường
-            usersByName = await User.find({ name: { $regex: new RegExp(keyword, "i") }, friends: req.user._id }).select("-password");
+            usersByName = await User.find({ name: { $regex: new RegExp(keyword, "i") }, friends: req.user._id }).select("-friendRequests -friends");
         }
 
         // Kết hợp kết quả và loại bỏ các bản ghi trùng lặp
