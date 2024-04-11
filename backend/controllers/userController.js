@@ -277,3 +277,33 @@ export const deleteFriend = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+// tìm kiếm người dùng bằng số điện thoại hoặc tên,
+// nếu tìm kiếm bằng tên chỉ tìm được người dùng có trong danh sách bạn bè
+export const findOtherUser = async (req, res) => {
+    try {
+        let { keyword } = req.query;
+
+        // Chuyển đổi keyword thành chữ thường
+        keyword = keyword.toLowerCase();
+
+        // Tìm kiếm người dùng bằng số điện thoại
+        const usersByPhone = await User.find({ phone: keyword }).select("-password");
+
+        // Nếu tìm kiếm bằng tên, chỉ tìm được người dùng là bạn bè
+        let usersByName = [];
+        if (isNaN(keyword)) {
+            // Tìm kiếm theo tên không phân biệt chữ hoa và chữ thường
+            usersByName = await User.find({ name: { $regex: new RegExp(keyword, "i") }, friends: req.user._id }).select("-password");
+        }
+
+        // Kết hợp kết quả và loại bỏ các bản ghi trùng lặp
+        const users = [...usersByPhone, ...usersByName];
+        const uniqueUsers = users.filter((user, index) => index === users.findIndex(u => u._id === user._id));
+
+        res.status(200).json(uniqueUsers);
+    } catch (error) {
+        console.log("Lỗi trong controller findOtherUser:", error.message);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}

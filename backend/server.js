@@ -7,12 +7,14 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
 import uploadRoutes from "./routes/uploadFileRoutes.js";
 import { app, server } from "./socket/socket.js";
+import cors from "cors";
 
 dotenv.config();
 const PORT = process.env.PORT;
 
 app.use(express.json()); //parse the incoming request with JSON payloads (from req.body)
 app.use(cookieParser());//parse the incoming request with cookies
+app.use(cors());//enable CORS
 
 server.listen(PORT, () => {
     connectToMongoDB();//connect to MongoDB

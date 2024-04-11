@@ -1,7 +1,7 @@
 import express from "express";
 import {
     updateUser, getListUsers, getProfile, sendFriendRequest, respondToFriendRequest,
-    getListFriendRequest, getStatusOfFriendRequest, getListFriend, deleteFriend
+    getListFriendRequest, getStatusOfFriendRequest, getListFriend, deleteFriend, findOtherUser
 } from "../controllers/userController.js";
 import { uploadAvatarMiddleware } from "../middlewares/uploadAvatar.js";
 import { handleFileSizeError } from "../middlewares/uploadimages.js";
@@ -18,5 +18,6 @@ router.get("/getFriendRequests", protectRoute, getListFriendRequest); //route fo
 router.get("/getStatusOfFriendRequest/:id", protectRoute, getStatusOfFriendRequest); //route for getting status of friend request, id is the id of the user who sent the request
 router.get("/getFriends", protectRoute, getListFriend); //route for getting all friends
 router.delete("/deleteFriend/:id", protectRoute, deleteFriend); //route for deleting friend, id is the id of the friend to be deleted
+router.get("/findOtherUser", protectRoute, findOtherUser); //route for finding other users
 
 export default router;
